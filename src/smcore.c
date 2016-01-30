@@ -52,6 +52,7 @@ extern int render_all_nodes_;
  * different solution is to be found...
  */
 
+#define MAX_RULE_TAG_SIZE 256
 
 /*! Compare string s2 to the initial part of bstring_t s1, i.e. strlen(s2) number of
  * characters.
@@ -125,13 +126,13 @@ static int check_rule_tag(const osm_obj_t *o, bstring_t b)
 int alloc_init_rule_tag(const osm_obj_t *o, bstring_t *b)
 {
    char *s;
-   if ((s = malloc(32)) == NULL)
+   if ((s = malloc(MAX_RULE_TAG_SIZE)) == NULL)
    {
       log_errno(LOG_ERR, "malloc() failed");
       return -1;
    }
    b->buf = s;
-   if ((b->len = snprintf(b->buf, 32, "%s=%"PRId64, type_str(o->type), o->id)) == -1)
+   if ((b->len = snprintf(b->buf, MAX_RULE_TAG_SIZE, "%s=%"PRId64, type_str(o->type), o->id)) == -1)
    {
       log_msg(LOG_EMERG, "snprintf() failed. WTF?");
       b->len = 0;
@@ -190,6 +191,7 @@ static int add_rule_tag(const smrule_t *r, osm_obj_t *o)
       return -1;
    }
  
+#if 0
    // allocate string memory for oldstring + newstring + ';'
    char *tmp;
    if ((tmp = realloc(b.buf, b.len + plen + 1)) == NULL)
@@ -198,15 +200,27 @@ static int add_rule_tag(const smrule_t *r, osm_obj_t *o)
       return -1;
    }
    b.buf = tmp;
+#endif
+
+   if (b.len >= MAX_RULE_TAG_SIZE)
+      goto rt_trunc;
 
    if (b.len)
       b.buf[b.len++] = ';';
+
+   if (b.len + plen > MAX_RULE_TAG_SIZE)
+      goto rt_trunc;
+
    memcpy(b.buf + b.len, buf, plen);
    b.len += plen;
 
    o->otag[n].v = b;
 
    log_debug("%s, id = %"PRId64", v = '%.*s'", type_str(o->type), o->id, b.len, b.buf);
+   return 0;
+
+rt_trunc:
+   log_msg(LOG_WARN, "rules tag truncated");
    return 0;
 } 
 #endif

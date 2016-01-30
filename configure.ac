@@ -1,5 +1,5 @@
 AC_PREREQ(2.67)
-define([svnversion], esyscmd([sh -c "echo -n `svnversion | tr -d 'M'`"]))dnl
+define([svnversion], esyscmd([sh -c "echo -n `svnversion | tr -d '[:alpha:],'`"]))dnl
 AC_INIT([smrender], [[4.0.r]svnversion], [bf@abenteuerland.at])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
@@ -26,27 +26,16 @@ AC_ARG_ENABLE([threads], [AS_HELP_STRING([--enable-threads],[compile with pthrea
 
 AC_ARG_WITH([cairo], [AS_HELP_STRING([--without-cairo], [disable support for libcairo])], [], [with_cairo=yes])
 AC_ARG_WITH([fontconfig], [AS_HELP_STRING([--without-fontconfig], [disable support for fontconfig])], [], [with_fontconfig=yes])
-AC_ARG_WITH([libjpeg], [AS_HELP_STRING([--without-libjpeg], [disable support for libjpeg])], [], [with_libjpeg=yes])
-AC_ARG_WITH([librsvg], [AS_HELP_STRING([--without-librsvg], [disable support for librsvg])], [], [with_librsvg=yes])
 
-AS_IF([test "x$with_fontconfig" != "xno"], [
+AS_IF([test "x$with_fontconfig" != xno], [
 PKG_CHECK_MODULES([FONTCONFIG], [fontconfig],
-                  [AC_DEFINE([HAVE_FONTCONFIG], [1], [compile with support for fontconfig.])],
-                  []
+                  [AC_DEFINE([HAVE_FONTCONFIG], [1], [compile with support for fontconfig.])]
                   )
 ])
 
-AS_IF([test "x$with_libjpeg" != "xno"], [
-PKG_CHECK_MODULES([LIBJPEG], [libjpeg],
-                  [AC_DEFINE([HAVE_LIBJPEG], [1], [compile with support for libjpeg.])],
-                  [AC_MSG_NOTICE([img() is compiled without JPEG support])]
-                  )
-])
-
-AS_IF([test "x$with_cairo" != "xno"], [
+AS_IF([test "x$with_cairo" != xno], [
 PKG_CHECK_MODULES([CAIRO], [cairo],
-                  [AC_DEFINE([HAVE_CAIRO], [1], [compile with support for libcairo.])],
-                  []
+                  [AC_DEFINE([HAVE_CAIRO], [1], [compile with support for libcairo.])]
                   )
 # this should be done just for the src directory
 #AC_SUBST([CAIRO_CFLAGS])
@@ -54,11 +43,11 @@ PKG_CHECK_MODULES([CAIRO], [cairo],
 AC_DEFINE([image_t], [cairo_surface_t], [default type of image_t])
 ])
 
-AS_IF([test "x$with_cairo" = "xno"], [
+AS_IF([test "x$with_cairo" = xno], [
 AC_DEFINE([image_t], [void], [default type of image_t])
 ])
 
-AS_IF([test "x$with_librsvg" != "xno"], [
+AS_IF([test "x$with_rsvg" != xno], [
 PKG_CHECK_MODULES([RSVG], [librsvg-2.0],
                   [AC_DEFINE([HAVE_RSVG], [1], [compile with support for librsvg.])],
                   [AC_MSG_NOTICE([img() is compiled without SVG support])]
@@ -66,7 +55,7 @@ PKG_CHECK_MODULES([RSVG], [librsvg-2.0],
 ])
 
 
-AS_IF([test "${enable_threads+set}" = "set"], [
+AS_IF([test "${enable_threads+set}" = set], [
 AX_PTHREAD([
    LIBS="$PTHREAD_LIBS $LIBS"
    CFLAGS="$CFLAGS $PTHREAD_CFLAGS"

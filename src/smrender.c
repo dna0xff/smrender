@@ -967,6 +967,18 @@ int main(int argc, char *argv[])
       save_osm(osm_rfile, rd->rules, NULL, NULL);
    }
 
+   // add additional lower version for internal static rules
+   if (rstats.ver_cnt >= MAX_ITER)
+   {
+      log_msg(LOG_EMERG, "to many different versions, ncrease MAX_ITER(=%d) and recompile.", MAX_ITER);
+      exit(EXIT_FAILURE);
+   }
+   memmove(&rstats.ver[1], &rstats.ver[0], sizeof(rstats.ver[1]) * rstats.ver_cnt);
+   rstats.ver[0]--;
+   rstats.ver_cnt++;
+   // add static rules
+   add_static_rule_objects(&rstats, &rd->rules);
+
    log_msg(LOG_INFO, "preparing node rules");
    if (traverse(rd->rules, 0, IDX_NODE, (tree_func_t) init_rules, rd->rules) < 0)
       log_msg(LOG_ERR, "rule parser failed"),
